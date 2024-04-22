@@ -9,62 +9,7 @@ from sklearn.metrics import classification_report
 import joblib
 import lime.lime_tabular
 from collections import Counter
-
-# Function to extract features from a PCAP file
-def extract_features(packet):
-    
-    # Extract features from the packet
-    src_ip = packet['IP'].src
-    dst_ip = packet['IP'].dst
-    protocol = packet['IP'].proto
-    length = len(packet)
-    info = packet.summary()
-    ports = extract_ports(packet)
-
-    return src_ip, dst_ip, protocol, length, info, ports
-
-def extract_ports(packet):
-    if 'TCP' in packet:
-        src_port = packet['TCP'].sport
-        dst_port = packet['TCP'].dport
-        return src_port, dst_port
-    elif 'UDP' in packet:
-        src_port = packet['UDP'].sport
-        dst_port = packet['UDP'].dport
-        return src_port, dst_port
-    else:
-        return None, None
-    
-# Function to process a single pcap file
-def process_pcap(file_path):
-    packets = rdpcap(file_path)
-    features = []
-
-    # Initialize LabelEncoder
-    label_encoders = {}
-
-    for packet in packets:
-        if 'IP' in packet:  # Check if packet contains IP layer
-            src_ip, dst_ip, protocol, length, info, ports = extract_features(packet)
-
-            # Encode categorical features
-            if isinstance(info, str):
-                info = [info]  # Convert info to list for consistent processing
-            for i, feature in enumerate([src_ip, dst_ip, protocol] + list(info)):
-                if isinstance(feature, str):
-                    if i not in label_encoders:
-                        label_encoders[i] = LabelEncoder()
-                    feature_encoded = label_encoders[i].fit_transform([feature])[0]
-                else:
-                    feature_encoded = feature
-                features.append(feature_encoded)
-
-            # Add numerical features
-            features.extend([length, ports[0], ports[1]])
-
-    # Export Label Encoder
-    joblib.dump(label_encoders,'label_encoder.pkl')
-    return features
+import feature_extract
 
 # Function to process a folder of pcap files
 def process_folder(folder_path, label=None):
@@ -74,7 +19,8 @@ def process_folder(folder_path, label=None):
     for file_name in os.listdir(folder_path):
         if file_name.endswith('.pcap'):
             file_path = os.path.join(folder_path, file_name)
-            features.append(process_pcap(file_path))
+            parameters = feature_extract.process_pcap(file_path)
+            features.append(feature_extract.synthesize_features(parameters))
             labels.append(label)
 
     return features, labels
@@ -113,12 +59,6 @@ def main():
     # Evaluate the model
     y_pred = clf.predict(X_test)
     print(classification_report(y_test, y_pred))
-
-    # Explain model predictions using LIME
-    explainer = lime.lime_tabular.LimeTabularExplainer(np.array(X_train), feature_names=['num_packets', 'total_bytes'])
-    exp = explainer.explain_instance(np.array(X_test[0]), clf.predict_proba)
-    print("Explanation using LIME:")
-    print(exp.as_list())
 
     # Save the trained model
     joblib.dump(clf, 'trained_model.pkl')

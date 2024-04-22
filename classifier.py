@@ -1,17 +1,7 @@
 import os
 import joblib
 from scapy.all import *
-
-# Function to extract features from a PCAP file
-def extract_features_from_pcap(file_path):
-    # Load the pcap file
-    pcap = rdpcap(file_path)
-
-    # Example feature extraction (you may need to extract more meaningful features)
-    num_packets = len(pcap)
-    total_bytes = sum([len(packet) for packet in pcap])
-
-    return [num_packets, total_bytes]
+import feature_extract
 
 # Function to classify PCAP files in a folder using a trained model
 def classify_pcaps(folder_path, model_path):
@@ -22,10 +12,10 @@ def classify_pcaps(folder_path, model_path):
     for file_name in os.listdir(folder_path):
         if file_name.endswith('.pcap'):
             file_path = os.path.join(folder_path, file_name)
-            features = extract_features_from_pcap(file_path)
-            # Reshape features for single sample prediction
-            features = [features]
-            prediction = clf.predict(features)[0]
+            parameters = feature_extract.process_pcap(file_path)
+            features = feature_extract.synthesize_features(parameters)
+            features2 = [features]
+            prediction = clf.predict(features2)
             print(f"File: {file_name}, Predicted Class: {prediction}")
 
 # Folder containing PCAP files to classify
