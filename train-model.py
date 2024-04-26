@@ -1,14 +1,10 @@
 import os
 import numpy as np
 from scapy.all import *
-from scapy.layers.inet import TCP
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import classification_report
 import joblib
-import lime.lime_tabular
-from collections import Counter
 import feature_extract
 
 # Function to process a folder of pcap files
