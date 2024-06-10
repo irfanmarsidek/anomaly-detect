@@ -1,0 +1,45 @@
+true
+; Initialize
+MVI A, 00H
+MVI B, 00H
+MVI C, 00H
+LXI D, 0000H
+
+LOOP:
+IN 10H		; Input for enter sensor
+MOV B,A		; Stroring enter input in B
+IN 11H		; Input for exit sensor
+MOV C,A		; Stroing exit input in C
+
+		; Print output from previous iteration
+MOV A,D		; Store first 8-bit counter in A
+OUT 20H		; Print first 8-bit counter
+MOV A,E		; Store second 8-bit counter in B
+OUT 21H		; Print second 8-bit counter
+
+MVI A, 00H		
+CMP B		; Check if B is not zero
+JNZ INCR		; If not zero, go to increment
+
+CMP C		; Check if C is not zero
+JNZ DECR		; If not zero, go to decrement
+
+JMP  LOOP		; Loop
+
+INCR:
+INX D		; Counter ++ in RG DE
+
+CMP C		; If people exit at the same time
+JNZ DECR		; Negate increment
+JMP LOOP
+
+DECR:
+DCX D		; Counter-- in RG DE
+JMP LOOP
+
+
+
+
+
+
+

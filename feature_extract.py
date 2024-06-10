@@ -111,11 +111,15 @@ def save_to_csv(data, file_path):
         writer.writerows(data)
 
 # Example usage:
-file_path = "anomalous_pcap/Probe/capture_30-03-2024--22-12-46.pcap"
+file_path = "temporary_pcap/capture_29-04-2024--00-54-36.pcap"
 output_file = "features.csv"
 parameters = process_pcap(file_path)
 features = synthesize_features(parameters)
 save_to_csv(parameters, output_file)
 print(features)
+print("Highest Flow Byte Per Second = "+str(features[0]))
+print("Highest Flow Packet Per Second = "+str(features[1]))
+print("Average Flow Byte Per Second = "+str(features[2]))
+print("Average Flow Packet Per Second = "+str(features[3]))
 
 
